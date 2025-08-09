@@ -1,0 +1,25 @@
+(g) Find a Turing Award winner born in Latin America.
+
+Para responder esta pregunta se utilizó el endpont de https://query.wikidata.org/
+
+SELECT DISTINCT ?person ?personLabel ?birthPlaceLabel ?countryLabel
+WHERE {
+  ?person wdt:P166 wd:Q185667 ;      # ganador del Premio Turing
+          wdt:P19  ?birthPlace .     # lugar de nacimiento
+
+  ?birthPlace (wdt:P131*) ?country .
+  ?country wdt:P31 wd:Q6256 .        # la entidad identificada es un país
+
+  FILTER EXISTS { ?country wdt:P361 wd:Q12585 }   # Latin America
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "es,en". }
+}
+ORDER BY ?personLabel
+
+Resultando:
+
+| person        | personLabel  | birthPlaceLabel | countryLabel |
+|---------------|--------------|-----------------|--------------|
+| wd:Q92626     | Manuel Blum  | Caracas         | Venezuela    |
+
+

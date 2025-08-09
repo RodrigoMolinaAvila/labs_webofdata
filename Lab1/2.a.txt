@@ -1,6 +1,8 @@
-#1
+# (a) Find a DCC Professor who has (co)authored at least one paper with a professor working in Kōfu, Japan.
 
-Identificar todas las universidades de Kofu, Japón en Wikidata:
+# Paso 1:
+
+Identificar todas las universidades de Kōfu, Japón en el endpoint de Wikidata https://query.wikidata.org/:
 
 SELECT DISTINCT ?university ?universityLabel WHERE {
   ?university wdt:P31 wd:Q3918 ;       # instancia de universidad
@@ -8,9 +10,11 @@ SELECT DISTINCT ?university ?universityLabel WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
 
-#2
+Esto permite identificar la existencia de "University of Yamanashi"
 
-Realizar un webscraping a través de la consola con JS de los nombres de los docentes del DCC "https://dcc.uchile.cl/nosotros/academicos/"
+# Paso 2:
+
+Realizar un webscraping en la página web https://www.dcc.uchile.cl/profesores_dcc ,a través de la consola del explorador con JS se identifican los nombres en el elemento HTML de la página en este caso p.nombre:
 
 const elementos = document.querySelectorAll('p.nombre');
 
@@ -35,6 +39,32 @@ link.click();
 
 document.body.removeChild(link);
 
+Resultando un .csv con la lista de nombres en la página
+
+| ID | Nombre                      |
+|----|-----------------------------|
+| 1  | Andrés Abeliuk              |
+| 2  | Ivana Bachmann E.           |
+| 3  | Nelson Baloian              |
+| 4  | Valentin Barriere           |
+| 5  | María Cecilia Bastarrica    |
+| 6  | Felipe Bravo Márquez        |
+| 7  | Benjamín Bustos             |
+| 8  | Eduardo Graells-Garrido     |
+| 9  | Claudio Gutiérrez           |
+| 10 | Francisco J. Gutiérrez      |
+| 11 | Alejandro Hevia             |
+| 12 | Nancy Hitschfeld            |
+| 13 | Aidan Hogan                 |
+| 14 | Gonzalo Navarro             |
+| 15 | Sergio Ochoa                |
+| 16 | Federico Olmedo             |
+| 17 | Patricio Poblete            |
+| 18 | Jocelyn Simmonds            |
+| 19 | Iván Sipirán                |
+| 20 | Éric Tanter                 |
+| 21 | Matías Toro                 |
+
 
 #3
 
@@ -43,8 +73,8 @@ Con la lista obtenida del webscraping, se busca en DBLP Sparql https://sparql.db
 PREFIX dblp: <https://dblp.org/rdf/schema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT DISTINCT ?author ?authorName ?affiliation WHERE {
-  ?author a dblp:Person ;
+SELECT DISTINCT ?authorIRI ?authorName ?affiliation WHERE {
+  ?authorIRI a dblp:Person ;
           rdfs:label ?authorName ;
           dblp:primaryAffiliation ?affiliation .
 
@@ -76,9 +106,23 @@ SELECT DISTINCT ?author ?authorName ?affiliation WHERE {
 }
 LIMIT 100
 
+Resultando esto:
+
+| # | ?authorIRI             | ?authorName              | ?affiliation                                         |
+|---|------------------------|--------------------------|------------------------------------------------------|
+| 1 | 5056                   | Benjamin Bustos          | University of Chile, Department of Computer Scie[...] |
+| 2 | 1093                   | Javier Bustos-Jiménez    | University of Chile, NIC Chile Research Labs, Sa[...] |
+| 3 | 7397                   | Federico Olmedo          | University of Chile, Chile                           |
+| 4 | 6509                   | Barbara Poblete          | University of Chile                                  |
+| 5 | MCeciliaBastarrica     | M. Cecilia Bastarrica    | University of Chile, Santiago, Chile                 |
+| 6 | AlejandroHevia         | Alejandro Hevia          | University of Chile, Santiago, Chile                 |
+| 7 | NancyHitschfeldKahler  | Nancy Hitschfeld-Kahler  | University of Chile, Santiago, Chile                 |
+| 8 | GonzaloNavarro         | Gonzalo Navarro 0001     | University of Chile, Santiago, Chile                 |
+| 9 | EricTanter             | Éric Tanter              | University of Chile, Santiago, Chile                 |
+
 #4
 
-Identificadas las URIS presentes, se busca la coautoría, filtrando si esa coautoría es de "University of Yamanashi"
+Identificadas las IRIS presentes, se busca la coautoría, filtrando si esa coautoría es de "University of Yamanashi"
 
 PREFIX dblp: <https://dblp.org/rdf/schema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -119,4 +163,4 @@ Resultando 2 autores que tienen el criterio de, ser del DCC teniendo coautoria d
 | 1 | 15/5056       | Benjamin Bustos        | University of Chile, Department of Computer Science| 5120-3       | Takahiro Matsuda 0003 | University of Yamanashi, Graduate School of Medicine |
 | 2 | 79/7397       | Gonzalo Navarro 0001   | University of Chile, Santiago, Chile               | 9119         | Dominik Köppl        | University of Yamanashi, Kofu, Japan        |
 
-
+Benjamín Bustos y Gonzalo Navarro tienen coautorías con autores que trabajan en una universidad en Kōfu, Japón.

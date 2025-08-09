@@ -1,4 +1,6 @@
-En wikidata 
+(c) Find three countries with a population of at least one million people whose tallest building is taller than its highest natural elevation (i.e., its tallest mountain or hill measured from sea level). The building is measured from the ground up (i.e., a 3 metre building on a 1000 metre mountain counts as 3 metres).
+
+Se realiza la busqueda en el endpoint de wikidata https://query.wikidata.org/:
 
 SELECT ?country ?countryLabel ?pop
        ?maxBuildingHeight ?maxNatElevation

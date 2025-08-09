@@ -1,3 +1,5 @@
+(b) Which female member of the 2022 Chilean Constitutional Convention has the most followers on Twitter/X?
+
 Para responder esta pregunta se utilizó TelarKG https://telarkg.imfd.cl/#query/ que contiene la información objetivo a buscar:
 
 con esta query:
@@ -12,3 +14,5 @@ LIMIT 1
 | m.name           | t.screenName   | t.followersCount |
 |------------------|---------------|------------------|
 | "Beatriz Sánchez"| "labeasanchez" | 544638           |
+
+La convenvional de la Convención Constitucional 2022 con mayor seguidores, es Beatriz Sánchez (en ese momento)
