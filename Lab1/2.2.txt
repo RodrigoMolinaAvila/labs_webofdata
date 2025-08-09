@@ -1,0 +1,14 @@
+Para responder esta pregunta se utilizó TelarKG https://telarkg.imfd.cl/#query/ que contiene la información objetivo a buscar:
+
+con esta query:
+
+MATCH (?m :ConventionMember)-[:gender]->(gen_female),
+      (?m)-[:hasAccount]->(?t :TwitterAccount)
+ORDER BY ?t.followersCount DESC    
+RETURN ?m.name, ?t.screenName, ?t.followersCount
+LIMIT 1 
+ 
+
+| m.name           | t.screenName   | t.followersCount |
+|------------------|---------------|------------------|
+| "Beatriz Sánchez"| "labeasanchez" | 544638           |

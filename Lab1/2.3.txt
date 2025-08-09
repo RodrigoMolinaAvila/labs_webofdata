@@ -1,0 +1,47 @@
+En wikidata 
+
+SELECT ?country ?countryLabel ?pop
+       ?maxBuildingHeight ?maxNatElevation
+       (?maxBuildingHeight - ?maxNatElevation AS ?margin) 
+WHERE {
+  ?country wdt:P31 wd:Q6256 ;
+           wdt:P1082 ?pop ;
+           wdt:P610 ?hp .                 # país tiene al menos un "highest point"
+  FILTER(?pop >= 1000000)
+
+  { SELECT ?country (MAX(?elev) AS ?maxNatElevation) WHERE {
+      ?country wdt:P610 ?hp .
+      ?hp wdt:P2044 ?elev .               # elevación s.n.m. del punto
+    } GROUP BY ?country
+  }
+
+  { SELECT ?country (MAX(?h) AS ?maxBuildingHeight) WHERE {
+      ?b wdt:P31/wdt:P279* wd:Q41176 ;    # building o subclase de building
+         wdt:P17 ?country ;
+         wdt:P2048 ?h .
+    } GROUP BY ?country
+  }
+
+  FILTER(?maxBuildingHeight > ?maxNatElevation)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en,es". }
+}
+ORDER BY DESC(?margin)
+LIMIT 50
+
+Entregando como resultado:
+
+| country         | countryLabel           | pop        | maxBuildingHeight | maxNatElevation | margin   |
+|-----------------|-----------------------|------------|-------------------|-----------------|----------|
+| wd:Q17          | Japan                 | 123802000  | 24990             | 3777.24         | 21212.76 |
+| wd:Q79          | Egypt                 | 114535772  | 3281              | 2637            | 644      |
+| wd:Q878         | United Arab Emirates  | 9890400    | 2400              | 1911            | 489      |
+| wd:Q846         | Qatar                 | 2639211    | 570               | 103             | 467      |
+| wd:Q334         | Singapore             | 5866139    | 561               | 163.63          | 397.37   |
+| wd:Q35          | Denmark               | 5827463    | 321.3             | 170.86          | 150.44   |
+| wd:Q398         | Bahrain               | 1569666    | 240               | 134             | 106      |
+| wd:Q211         | Latvia                | 1871882    | 368.5             | 311.94          | 56.56    |
+| wd:Q37          | Lithuania             | 2860002    | 326               | 293.84          | 32.16    |
+| wd:Q191         | Estonia               | 1369995    | 347               | 317.4           | 29.6     |
+
+Entonces, los 3 paises con mayor diferencia entre la altura del edificio más alto y la elevación del punto más alto son: Japón, Egipto y Emiratos Árabes Unidos.
