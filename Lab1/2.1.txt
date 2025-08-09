@@ -1,0 +1,122 @@
+#1
+
+Identificar todas las universidades de Kofu, Japón en Wikidata:
+
+SELECT DISTINCT ?university ?universityLabel WHERE {
+  ?university wdt:P31 wd:Q3918 ;       # instancia de universidad
+              wdt:P131* wd:Q201932 .   # ubicada en Kōfu
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}
+
+#2
+
+Realizar un webscraping a través de la consola con JS de los nombres de los docentes del DCC "https://dcc.uchile.cl/nosotros/academicos/"
+
+const elementos = document.querySelectorAll('p.nombre');
+
+let csvContent = "ID,Nombre\n";
+
+elementos.forEach((elemento, index) => {
+  const id = index + 1; // ID comienza en 1
+  const nombre = elemento.textContent.trim().replace(/"/g, '""'); 
+  csvContent += `"${id}","${nombre}"\n`;
+});
+
+const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+const link = document.createElement('a');
+const url = URL.createObjectURL(blob);
+link.setAttribute('href', url);
+link.setAttribute('download', 'nombres.csv');
+link.style.visibility = 'hidden';
+
+document.body.appendChild(link);
+link.click();
+
+document.body.removeChild(link);
+
+
+#3
+
+Con la lista obtenida del webscraping, se busca en DBLP Sparql https://sparql.dblp.org/ si existe alguna coincidencia de nombres de los profesores DCC que tengan en afiliación en "University of Chile"
+
+PREFIX dblp: <https://dblp.org/rdf/schema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?author ?authorName ?affiliation WHERE {
+  ?author a dblp:Person ;
+          rdfs:label ?authorName ;
+          dblp:primaryAffiliation ?affiliation .
+
+  FILTER(CONTAINS(STR(?affiliation), "University of Chile"))
+
+  FILTER(
+    regex(?authorName, "Abeliuk") ||
+    regex(?authorName, "Bachmann") ||
+    regex(?authorName, "Baloian") ||
+    regex(?authorName, "Barriere") ||
+    regex(?authorName, "Bastarrica") ||
+    regex(?authorName, "Bravo") ||
+    regex(?authorName, "Bustos") ||
+    regex(?authorName, "Graells") ||
+    regex(?authorName, "Claudio Gutiérrez") ||
+    regex(?authorName, "Francisco.*Gutiérrez") ||
+    regex(?authorName, "Hevia") ||
+    regex(?authorName, "Hitschfeld") ||
+    regex(?authorName, "Aidan Hogan") ||
+    regex(?authorName, "Gonzalo Navarro") ||
+    regex(?authorName, "Sergio Ochoa") ||
+    regex(?authorName, "Olmedo") ||
+    regex(?authorName, "Poblete") ||
+    regex(?authorName, "Simmonds") ||
+    regex(?authorName, "Sipirán") ||
+    regex(?authorName, "Tanter") ||
+    regex(?authorName, "Matías Toro")
+  )
+}
+LIMIT 100
+
+#4
+
+Identificadas las URIS presentes, se busca la coautoría, filtrando si esa coautoría es de "University of Yamanashi"
+
+PREFIX dblp: <https://dblp.org/rdf/schema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT 
+  ?dccAuthor ?dccAuthorName ?dccAffiliation 
+  ?coauthor ?coauthorName ?coauthorAffiliation 
+WHERE {
+  VALUES ?dccAuthor {
+    <https://dblp.org/pid/t/EricTanter>
+    <https://dblp.org/pid/n/GonzaloNavarro>
+    <https://dblp.org/pid/h/NancyHitschfeldKahler>
+    <https://dblp.org/pid/h/AlejandroHevia>
+    <https://dblp.org/pid/b/MCeciliaBastarrica>
+    <https://dblp.org/pid/83/6509>
+    <https://dblp.org/pid/79/7397>
+    <https://dblp.org/pid/26/1093>
+    <https://dblp.org/pid/15/5056>
+  }
+
+  ?pub dblp:authoredBy ?dccAuthor, ?coauthor .
+  FILTER (?dccAuthor != ?coauthor)
+
+  ?dccAuthor rdfs:label ?dccAuthorName .
+  OPTIONAL { ?dccAuthor dblp:primaryAffiliation ?dccAffiliation . }
+
+  ?coauthor rdfs:label ?coauthorName .
+  OPTIONAL { ?coauthor dblp:primaryAffiliation ?coauthorAffiliation . }
+
+  FILTER(CONTAINS(STR(?coauthorAffiliation), "University of Yamanashi"))
+}
+ORDER BY ?dccAuthorName ?coauthorName
+
+Resultando 2 autores que tienen el criterio de, ser del DCC teniendo coautoria de alguien de una universidad en Kōfu Japón.
+
+| # | DCC Author PID | DCC Author Name         | DCC Affiliation                                   | Coauthor PID | Coauthor Name         | Coauthor Affiliation                        |
+|---|---------------|------------------------|---------------------------------------------------|--------------|----------------------|---------------------------------------------|
+| 1 | 15/5056       | Benjamin Bustos        | University of Chile, Department of Computer Science| 5120-3       | Takahiro Matsuda 0003 | University of Yamanashi, Graduate School of Medicine |
+| 2 | 79/7397       | Gonzalo Navarro 0001   | University of Chile, Santiago, Chile               | 9119         | Dominik Köppl        | University of Yamanashi, Kofu, Japan        |
+
+
