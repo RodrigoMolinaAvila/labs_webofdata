@@ -1,0 +1,86 @@
+# Q1
+
+SELECT ?spin WHERE {
+  :Photon :spin ?spin .
+}
+
+# Q2
+
+SELECT DISTINCT ?particle ?spin WHERE {
+  ?particle :mediates :Weak ;
+            :spin ?spin .
+}
+
+# Q3
+
+SELECT DISTINCT ?particle ?force WHERE {
+  :Gluon :mediates ?force .
+  ?particle :interaction ?force .
+}
+
+# Q4 
+
+SELECT DISTINCT ?baryon ?force WHERE {
+  ?baryon a :Baryon ;
+          :contains ?blk .
+  ?blk :component ?comp .
+  ?comp :interaction ?force .
+}
+
+
+# Q5 
+
+SELECT DISTINCT ?particle ?spin WHERE {
+  ?particle :spin ?spin .
+  FILTER( ?spin = FLOOR(?spin) )
+}
+
+# Q6
+
+SELECT DISTINCT ?particle ?force WHERE {
+  { :Gluon  :mediates ?force } UNION { :Photon :mediates ?force } .
+  ?particle :interaction ?force .
+}
+
+# Q7
+
+SELECT DISTINCT ?particle ?spin ?generation WHERE {
+  ?particle :spin ?spin .
+  FILTER(?spin > 0)
+  OPTIONAL { ?particle :generation ?generation }
+}
+
+# Q8
+
+SELECT DISTINCT ?particle WHERE {
+  # Derivar las fuerzas a partir de sus mediadores
+  :WBoson :mediates ?weakForce .
+  :ZBoson :mediates ?weakForce .
+  :Gluon  :mediates ?strongForce .
+
+  # Requerir interacción con la (las) fuerza(s) débil(es)
+  ?particle :interaction ?weakForce .
+
+  # Excluir interacción con la fuerza fuerte
+  FILTER NOT EXISTS { ?particle :interaction ?strongForce }
+}
+
+# Q9
+
+ASK {
+  :Muon :spin ?muSpin .
+  ?particle :spin ?spin .
+  FILTER(?spin < ?muSpin)
+}
+
+# Q10
+
+CONSTRUCT {
+  ?q1 :nextGeneration ?q2 .
+  ?q2 :prevGeneration ?q1 .
+}
+WHERE {
+  ?q1 a :Quark ; :generation ?g1 .
+  ?q2 a :Quark ; :generation ?g2 .
+  FILTER(?g2 = ?g1 + 1)
+}
